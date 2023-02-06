@@ -846,6 +846,59 @@
          )
         (else
           (sound-play "wcrate-break")
+         
+         
+       
+          (let ((proc (handle->process  self)))
+          (format #f "Start~%" )
+           ;; we have task data for this level!
+
+           
+             ;; get the level index
+             
+              (format #f "1~%" )
+          
+                (format #f "2~%" )
+       
+                (format #f "3~%" )
+               ;; increment our total money in the game (out of the 2000 max orbs)
+               (+! (-> *game-info* woodcrate-total) 1.0)
+                (process-entity-status! self (entity-perm-status dead) #t)
+                                (process-entity-status! self (entity-perm-status bit-4) #f)
+                              (process-entity-status! self (entity-perm-status dead) #t)
+                              (process-entity-status! self (entity-perm-status complete) #t)
+            (set! (-> self entity extra perm task) (game-task complete))
+                (cleanup-for-death self)
+                (format #f "4~%" )
+               ;; if we have all the money in our level, display the all orbs graphic
+
+                   
+               #|
+                    ;; need to update the various orb counters
+
+       (let ((proc (handle->process source)))
+         (when (and proc (-> proc entity))
+           ;; we have task data for this level!
+           (when (>= (-> *level-task-data-remap* length) (-> proc entity extra level info index))
+             ;; get the level index
+               (let ((level-idx (-> *level-task-data-remap* (+ (-> proc entity extra level info index) -1))))
+               ;; increment the level money count
+               (+! (-> obj woodcrate-per-level level-idx) (the int amount))
+               ;; increment our total money in the game (out of the 2000 max orbs)
+               (+! (-> obj woodcrate-total) amount)
+               ;; if we have all the money in our level, display the all orbs graphic
+               (if (= (-> obj woodcrate-per-level level-idx) (-> (get-game-count level-idx) woodcrate-count))
+                   (activate-orb-all level-idx)
+                   )
+               )
+             )
+           )
+         )
+         |#
+             
+             
+           
+         )
           )
         )
       (case (-> self defense)

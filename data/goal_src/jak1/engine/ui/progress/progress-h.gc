@@ -197,6 +197,12 @@
   :flag-assert         #x900000008
   )
 
+  (deftype woodcrate-count-info (structure)
+  ((money-count  int32  :offset-assert   0)
+   (buzzer-count int32  :offset-assert   4)
+   (woodcrate-count int32)
+   )
+)
 
 (deftype task-info-data (basic)
   ((task-id                  game-task      :offset-assert   4)

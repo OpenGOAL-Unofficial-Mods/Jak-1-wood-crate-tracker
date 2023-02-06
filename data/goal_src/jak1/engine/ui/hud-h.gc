@@ -25,6 +25,7 @@
 (declare-type hud-bike-speed hud)
 (declare-type hud-bike-heat hud)
 (declare-type hud-money-all hud)
+(declare-type hud-woodcrate-all hud)
 
 ;; DECOMP BEGINS
 
@@ -121,10 +122,9 @@
    (bike-heat  (pointer hud-bike-heat)    :offset-assert  28)
    (money-all  (pointer hud-money-all)    :offset-assert  32)
    (parts      (pointer hud)            9 :offset          0)
+   (woodcrate-all      (pointer hud-woodcrate-all)        )
    )
-  :method-count-assert 9
-  :size-assert         #x24
-  :flag-assert         #x900000024
+
   )
 
 
@@ -138,6 +138,7 @@
                       :bike-speed #f
                       :bike-heat #f
                       :money-all #f
+                      :woodcrate-all #f
                       )
         )
 

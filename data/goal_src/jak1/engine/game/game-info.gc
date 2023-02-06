@@ -382,6 +382,14 @@
      ;; increment our current money count
      (+! (-> obj money) amount)
      )
+      (('crate)
+
+
+       
+
+     ;; increment our current money count
+     (+! (-> obj money) amount)
+     )
     (('fuel-cell)
      ;; got a power cell!
      ;; in this case, the amount is actually the index of the power cell's task

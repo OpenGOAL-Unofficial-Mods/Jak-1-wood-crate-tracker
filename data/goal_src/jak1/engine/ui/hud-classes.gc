@@ -2129,6 +2129,264 @@
   0
   )
 
+(deftype hud-woodcrate-all (hud)
+  ((x-scale     float       :offset-assert 280)
+   (y-scale     float       :offset-assert 284)
+   (y-pos       int32       :offset-assert 288)
+   (total-orbs  int32       :offset-assert 292)
+   (level-index int32       :offset-assert 296)
+   (start-time  time-frame  :offset-assert 304)
+   )
+  :heap-base #xd0
+  :method-count-assert 27
+  :size-assert         #x138
+  :flag-assert         #x1b00d00138
+  )
+
+
+(defmethod draw-hud hud-woodcrate-all ((obj hud-woodcrate-all))
+  (let ((t9-0 (method-of-type hud draw-hud)))
+    (t9-0 obj)
+    )
+  0
+  (let ((s5-0 0))
+    (when (>= (-> obj level-index) 0)
+      (let ((s5-1
+              (new
+                'stack
+                'font-context
+                *font-default-matrix*
+                (+ (* (-> obj x-sgn) (-> obj offset)) -60 (-> obj text-x))
+                (+ (/ (* (+ (-> obj text-y) (* (-> obj y-sgn) (-> obj offset)) (-> obj y-offset))
+                         (the int (-> *video-parms* relative-y-scale))
+                         )
+                      2
+                      )
+                   -17
+                   )
+                0.0
+                (font-color orange-red)
+                (font-flags shadow kerning)
+                )
+              )
+            )
+        (let ((v1-12 s5-1))
+          (set! (-> v1-12 width) (the float 228))
+          )
+        (let ((v1-13 s5-1))
+          (set! (-> v1-13 height) (the float 45))
+          )
+        (let ((v1-14 s5-1))
+          (set! (-> v1-14 scale) 0.6)
+          )
+        (set! (-> s5-1 flags) (font-flags shadow kerning middle left large))
+        (print-game-text
+          (lookup-text! *common-text* (-> *level-task-data* (-> obj level-index) level-name-id) #f)
+          s5-1
+          #f
+          128
+          18
+          )
+        )
+      (set! s5-0 13)
+      )
+    (let* ((s1-0 50)
+           (s3-0 (-> *display* frames (-> *display* on-screen) frame global-buf))
+           (s4-1 (-> s3-0 base))
+           )
+      (let ((s2-0 draw-string-xy))
+        (format (clear *temp-string*) "~D/~D" (-> obj total-orbs) (-> obj total-orbs))
+        (s2-0
+          *temp-string*
+          s3-0
+          (+ (-> obj text-x) (* (-> obj x-sgn) (-> obj offset)) s1-0)
+          (+ (/ (* (+ (-> obj text-y) (* (-> obj y-sgn) (-> obj offset)) (-> obj y-offset))
+                   (the int (-> *video-parms* relative-y-scale))
+                   )
+                2
+                )
+             s5-0
+             )
+          (font-color dark-yellow)
+          (font-flags shadow kerning middle large)
+          )
+        )
+      (let ((a3-12 (-> s3-0 base)))
+        (let ((v1-32 (the-as dma-packet (-> s3-0 base))))
+          (set! (-> v1-32 dma) (new 'static 'dma-tag :id (dma-tag-id next)))
+          (set! (-> v1-32 vif0) (new 'static 'vif-tag))
+          (set! (-> v1-32 vif1) (new 'static 'vif-tag))
+          (set! (-> s3-0 base) (&+ (the-as pointer v1-32) 16))
+          )
+        (dma-bucket-insert-tag
+          (-> *display* frames (-> *display* on-screen) frame bucket-group)
+          (bucket-id debug)
+          s4-1
+          (the-as (pointer dma-tag) a3-12)
+          )
+        )
+      )
+    )
+  0
+  (none)
+  )
+
+(defmethod hud-update hud-woodcrate-all ((obj hud-woodcrate-all))
+  (when *target*
+    (hide-bottom-hud)
+    (when (!= *master-mode* 'pause)
+      (when (and (!= (-> obj icons 0) 0) (-> obj icons 0 icon))
+        (set! (-> obj icons 0 scale-x) (-> obj x-scale))
+        (set! (-> obj icons 0 scale-y) (-> obj y-scale))
+        (set! (-> obj icons 0 icon-y) (* (-> obj y-pos) (the int (-> *video-parms* relative-y-scale))))
+        (let ((a0-6 (-> obj icons 0 icon 0 root)))
+          (set-yaw-angle-clear-roll-pitch!
+            a0-6
+            (- (y-angle a0-6) (* 182.04445 (* 4.0 (-> *display* time-adjust-ratio))))
+            )
+          )
+        )
+      )
+    (if (>= (+ (-> *display* base-frame-counter) (seconds -5)) (-> obj start-time))
+        (set! (-> obj deactivate-when-hidden) #t)
+        (tally-value obj (the-as int (-> *display* base-frame-counter)) 0)
+        )
+    )
+  0
+  (none)
+  )
+
+(defmethod init-particles! hud-woodcrate-all ((obj hud-woodcrate-all) (arg0 int))
+  (when (< (-> obj nb-of-icons) 6)
+    (let ((s4-0 (-> obj nb-of-icons)))
+      (set! (-> obj icons s4-0) (new 'static 'hud-icon))
+      (let ((s3-0 (manipy-spawn (new 'static 'vector :w 1.0) #f *crate-wood-sg* #f :to obj)))
+        (when s3-0
+          (set! (-> (the-as process-drawable (-> s3-0 0)) draw dma-add-func) dma-add-process-drawable-hud)
+          (set-vector! (-> (the-as process-drawable (-> s3-0 0)) root trans) 0.0 0.0 0.0 1.0)
+          (set-vector! (-> (the-as process-drawable (-> s3-0 0)) root scale) 0.0095 -0.011 0.0095 1.0)
+          (if #f
+              (send-event (ppointer->process s3-0) 'trans-hook #f)
+              )
+          )
+        (set! (-> obj icons s4-0 icon) (the-as (pointer manipy) s3-0))
+        (when s3-0
+          (logior! (-> s3-0 0 mask) (process-mask pause))
+          (logclear! (-> s3-0 0 mask) (process-mask menu progress))
+          (set! (-> (the-as process-drawable (-> s3-0 0)) root trans z) 1024.0)
+          (set! (-> obj icons s4-0 icon-x) 170)
+          (set! (-> obj icons s4-0 icon-y) 0)
+          (set! (-> obj icons s4-0 icon-z) 0)
+          (set! (-> obj icons s4-0 scale-x) 0.0095)
+          (set! (-> obj icons s4-0 scale-y) -0.011)
+          )
+        )
+      )
+    (+! (-> obj nb-of-icons) 1)
+    )
+ 
+  (set-pos-and-scale obj (= (get-aspect-ratio) 'aspect16x9) (= (get-video-mode) 'pal))
+  (dotimes (s4-3 (-> obj nb-of-particles))
+    (if (= (-> obj particles s4-3 part matrix) -1)
+        (set! (-> obj particles s4-3 part matrix) (sprite-allocate-user-hvdf))
+        )
+    )
+  (set! (-> obj text-x) 251)
+  (set! (-> obj text-y) 305)
+  (set! (-> obj x-sgn) 0)
+  (set! (-> obj y-sgn) 1)
+  (hide-bottom-hud)
+  (let ((s4-4 0)
+        (s3-2 0)
+        (s2-2 0)
+        )
+    (dotimes (s1-0 (length *level-task-data*))
+      (let ((v1-83 (-> *level-task-data* s1-0)))
+        (when (!= v1-83 #f)
+          (when (or (= *kernel-boot-message* 'play) (= (-> v1-83 level-name-id) (game-text-id misty-level-name)))
+            (if (= s1-0 arg0)
+                (set! s2-2 (the-as int (-> *game-info* money-per-level s1-0)))
+                )
+            (+! s3-2 (-> *game-info* money-per-level s1-0))
+            (+! s4-4 (-> (get-game-count s1-0) money-count))
+            )
+          )
+        )
+      )
+    (cond
+      ((= s3-2 s4-4)
+       (set! (-> obj total-orbs) s4-4)
+       (set! (-> obj total-orbs) s4-4)
+       (set! (-> obj level-index) -1)
+       )
+      ((begin (set! (-> obj total-orbs) s2-2) (< arg0 (length *level-task-data*)))
+       (set! (-> obj level-index) arg0)
+       )
+      (else
+        (set! (-> obj level-index) -1)
+        )
+      )
+    )
+  (set! (-> obj start-time) (-> *display* base-frame-counter))
+  (sound-play "get-all-orbs")
+  0
+  (none)
+  )
+
+(defmethod set-pos-and-scale hud-woodcrate-all ((obj hud-woodcrate-all) (arg0 symbol) (arg1 symbol))
+  (cond
+    (arg0
+      (set! (-> obj x-scale) 0.01845)
+      (set! (-> obj y-scale) -0.02175)
+      (set! (-> obj y-pos) (if arg1
+                               374
+                               373
+                               )
+            )
+      )
+    (else
+      (set! (-> obj x-scale) (/ 0.013499999 2.0))
+      (set! (-> obj y-scale) (/ -0.01575 2.0))
+      (set! (-> obj y-pos) 361)
+      )
+    )
+  (when arg1
+    (set! (-> obj x-scale) (* 1.2 (-> obj x-scale)))
+    (set! (-> obj y-scale) (* 1.2 (-> obj y-scale)))
+    (set! (-> obj y-pos) (the int (* 1.21 (the float (-> obj y-pos)))))
+    )
+  0
+  (none)
+  )
+
+(defpartgroup group-part-hud-orb
+  :id 79
+  :flags (screen-space)
+  :bounds (static-bspherem 0 0 0 100)
+  :parts ((sp-item 312 :flags (launch-asap)))
+  )
+
+(defpart 312
+  :init-specs ((sp-tex spt-texture (new 'static 'texture-id :index #x2c :page #x2))
+    (sp-flt spt-num 1.0)
+    (sp-flt spt-scale-x (meters 1.6))
+    (sp-copy-from-other spt-scale-y -4)
+    (sp-flt spt-r 128.0)
+    (sp-flt spt-g 128.0)
+    (sp-flt spt-b 128.0)
+    (sp-flt spt-a 128.0)
+    (sp-int spt-timer -1)
+    (sp-cpuinfo-flags bit2 bit9)
+    )
+  )
+
+(defun activate-woodcrate-all ((arg0 int))
+  (if (not (-> *hud-parts* woodcrate-all))
+      (set! (-> *hud-parts* woodcrate-all) (process-spawn hud-woodcrate-all :init hud-init-by-other arg0 :to *target*))
+      )
+  0
+  )
+
 (defbehavior convert-to-hud-object process-drawable ((arg0 process-drawable) (arg1 hud))
   (when arg1
     (logclear! (-> arg0 mask) (process-mask actor-pause))
